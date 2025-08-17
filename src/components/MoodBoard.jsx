@@ -212,57 +212,18 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
         img.onload = () => {
           const layout = smartLayouts[index]
           
-          // Save context for rotation
-          ctx.save()
-          ctx.translate(layout.x + layout.width/2, layout.y + layout.height/2)
-          ctx.rotate((layout.rotation || 0) * Math.PI / 180)
+          // Draw image naturally without any effects
+          ctx.drawImage(img, layout.x, layout.y, layout.width, layout.height)
           
-          // Draw image with rounded corners
-          ctx.shadowColor = 'rgba(0,0,0,0.3)'
-          ctx.shadowBlur = 10
-          ctx.shadowOffsetX = 3
-          ctx.shadowOffsetY = 3
-          
-          // Draw rounded rectangle (browser compatibility)
-          const radius = 8
-          const x = -layout.width/2
-          const y = -layout.height/2
-          const w = layout.width
-          const h = layout.height
-          
-          ctx.beginPath()
-          ctx.moveTo(x + radius, y)
-          ctx.lineTo(x + w - radius, y)
-          ctx.quadraticCurveTo(x + w, y, x + w, y + radius)
-          ctx.lineTo(x + w, y + h - radius)
-          ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h)
-          ctx.lineTo(x + radius, y + h)
-          ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
-          ctx.lineTo(x, y + radius)
-          ctx.quadraticCurveTo(x, y, x + radius, y)
-          ctx.closePath()
-          ctx.clip()
-          
-          // Draw image without color overlay
-          ctx.drawImage(img, -layout.width/2, -layout.height/2, layout.width, layout.height)
-          
-          ctx.restore()
           resolve()
         }
         img.onerror = () => {
-          // Fallback: draw styled rectangle
+          // Fallback: draw simple colored rectangle
           const layout = smartLayouts[index] || { x: 50, y: 50, width: 200, height: 150, rotation: 0 }
           
-          ctx.save()
-          ctx.translate(layout.x + layout.width/2, layout.y + layout.height/2)
-          ctx.rotate((layout.rotation || 0) * Math.PI / 180)
-          
           ctx.fillStyle = hexToRgba(color, 0.8)
-          ctx.shadowColor = 'rgba(0,0,0,0.2)'
-          ctx.shadowBlur = 8
-          ctx.fillRect(-layout.width/2, -layout.height/2, layout.width, layout.height)
+          ctx.fillRect(layout.x, layout.y, layout.width, layout.height)
           
-          ctx.restore()
           resolve()
         }
         img.src = imageData.url
