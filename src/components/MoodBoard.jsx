@@ -74,10 +74,24 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
           ctx.shadowOffsetX = 3
           ctx.shadowOffsetY = 3
           
-          // Draw rounded rectangle
+          // Draw rounded rectangle (browser compatibility)
           const radius = 8
+          const x = -layout.width/2
+          const y = -layout.height/2
+          const w = layout.width
+          const h = layout.height
+          
           ctx.beginPath()
-          ctx.roundRect(-layout.width/2, -layout.height/2, layout.width, layout.height, radius)
+          ctx.moveTo(x + radius, y)
+          ctx.lineTo(x + w - radius, y)
+          ctx.quadraticCurveTo(x + w, y, x + w, y + radius)
+          ctx.lineTo(x + w, y + h - radius)
+          ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h)
+          ctx.lineTo(x + radius, y + h)
+          ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
+          ctx.lineTo(x, y + radius)
+          ctx.quadraticCurveTo(x, y, x + radius, y)
+          ctx.closePath()
           ctx.clip()
           
           // Draw image
