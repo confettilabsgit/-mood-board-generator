@@ -3,7 +3,7 @@ import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import MilanoteSidebar from './components/MilanoteSidebar'
 import MilanoteCanvas from './components/MilanoteCanvas'
-import { getCuratedMoodBoardImages } from './services/enhancedImageService'
+import { getCuratedMoodBoardImages, getSizeDimensions } from './services/enhancedImageService'
 import { generateAIKeywords, generateSmartLayout } from './services/aiService'
 
 function App() {
@@ -19,12 +19,14 @@ function App() {
       // Get curated images using enhanced service with Lummi integration
       const allImages = await getCuratedMoodBoardImages(selectedStyle, selectedColor, 'milanote')
       
-      // Generate smart layout positions
-      const layouts = generateSmartLayout(allImages.length, 1200, 800, selectedStyle)
-      
-      // Create canvas elements
+      // Create varied layout with different sizes
       const imageElements = allImages.map((image, index) => {
-        const layout = layouts[index] || { x: 100 + (index % 3) * 220, y: 100 + Math.floor(index / 3) * 180, width: 200, height: 150 }
+        // Use size variant from enhanced service or generate one
+        const sizeVariant = image.sizeVariant || getSizeVariant(index)
+        const baseDimensions = getSizeDimensions(sizeVariant)
+        
+        // Create organic layout with varied positioning
+        const position = generateVariedPosition(index, allImages.length, baseDimensions)
         
         return {
           id: `auto-image-${Date.now()}-${index}`,
@@ -32,18 +34,20 @@ function App() {
           data: {
             url: image.url,
             alt: image.alt,
-            // Use Lummi's color analysis for better color pop detection
+            // Use enhanced color analysis for better color pop detection
             isColorPop: image.isColorPop !== undefined ? image.isColorPop : (image.category === 'colorPop' || index >= 7),
             colors: image.colors || [],
             dominantColor: image.dominantColor,
-            source: image.source || 'enhanced'
+            source: image.source || 'enhanced',
+            contentType: image.contentType || 'object',
+            sizeVariant: sizeVariant
           },
-          position: { x: layout.x, y: layout.y },
+          position: position,
           size: { 
-            width: layout.width + (Math.random() * 80 - 40), // Vary sizes slightly
-            height: layout.height + (Math.random() * 60 - 30)
+            width: baseDimensions.width + (Math.random() * 40 - 20), // Slight size variation
+            height: baseDimensions.height + (Math.random() * 30 - 15)
           },
-          rotation: (Math.random() - 0.5) * 6, // Slight rotation for organic feel
+          rotation: (Math.random() - 0.5) * 8, // More varied rotation for organic feel
           zIndex: index
         }
       })
@@ -131,6 +135,41 @@ function App() {
       luxury: '"Cormorant Garamond", serif'
     }
     return fonts[style] || fonts.modern
+  }
+
+  // Generate size variant for images
+  const getSizeVariant = (index) => {
+    const sizePattern = [
+      'large', 'small', 'medium', 'wide', 'small', 
+      'medium', 'tall', 'small', 'large'
+    ]
+    return sizePattern[index % sizePattern.length] || 'medium'
+  }
+
+  // Generate varied positions for organic layout
+  const generateVariedPosition = (index, totalCount, dimensions) => {
+    const canvasWidth = 1200
+    const canvasHeight = 800
+    const margin = 50
+    
+    // Create a loose grid with organic positioning
+    const cols = 3
+    const rows = Math.ceil(totalCount / cols)
+    
+    const col = index % cols
+    const row = Math.floor(index / cols)
+    
+    const baseX = margin + col * (canvasWidth - margin * 2) / cols
+    const baseY = margin + row * (canvasHeight - margin * 2) / rows
+    
+    // Add organic offset
+    const offsetX = (Math.random() - 0.5) * 100
+    const offsetY = (Math.random() - 0.5) * 80
+    
+    return {
+      x: Math.max(margin, Math.min(canvasWidth - dimensions.width - margin, baseX + offsetX)),
+      y: Math.max(margin, Math.min(canvasHeight - dimensions.height - margin, baseY + offsetY))
+    }
   }
 
   return (

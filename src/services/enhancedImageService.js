@@ -54,30 +54,44 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
   try {
     const totalImages = layout === 'milanote' ? 9 : 12
 
-    // Strategy: Mix of B&W, neutral, and color-pop images using both APIs
-    const [lummiColorPop, lummiNeutral, unsplashBW] = await Promise.all([
-      // Color-focused images from Lummi
-      searchByDominantColor(color, style, 3),
+    // Strategy: Diverse content mix - people, buildings, typography, drawings, objects
+    const contentTypes = [
+      ['people', 'portrait', 'person', 'face'],
+      ['architecture', 'building', 'interior', 'room'],
+      ['typography', 'text', 'lettering', 'sign'],
+      ['drawing', 'illustration', 'sketch', 'art'],
+      ['object', 'still life', 'product', 'texture']
+    ]
+
+    const [diverseImages, colorImages, neutralImages] = await Promise.all([
+      // Get diverse content types
+      Promise.all(contentTypes.map(keywords => 
+        searchEnhancedImages(style, color, 2, 'mixed').then(images => 
+          searchLummiImages(keywords.join(' '), color, 1, [style]).then(lummiImages => 
+            [...images.slice(0, 1), ...lummiImages.slice(0, 1)]
+          )
+        )
+      )).then(results => results.flat().slice(0, 6)),
       
-      // Neutral/muted images from Lummi  
-      searchLummiImages(style, '#f5f5f5', 3, ['neutral', 'minimal', 'clean']),
+      // Color-focused images
+      searchByDominantColor(color, style, 2),
       
-      // B&W images from Unsplash
-      searchUnsplash(style, color, 3, ['black white', 'monochrome', 'minimal'])
+      // Neutral/B&W images  
+      searchEnhancedImages(style, '#000000', 3, 'mixed')
     ])
 
-    // Categorize and enhance all images
-    const allImages = [...lummiColorPop, ...lummiNeutral, ...unsplashBW]
+    // Combine all images and categorize
+    const allImages = [...diverseImages, ...colorImages, ...neutralImages]
     const categorized = categorizeImagesByColor(allImages, color)
 
-    // Create the final curated mix
+    // Create the final curated mix with diverse content
     const curatedImages = [
       ...categorized.blackWhite.slice(0, 4),  // 4 B&W images
       ...categorized.neutral.slice(0, 3),     // 3 neutral images  
       ...categorized.colorPop.slice(0, 2)     // 2 color-pop images
     ]
 
-    // Fill any gaps with mixed search
+    // Fill any gaps with diverse search
     if (curatedImages.length < totalImages) {
       const additionalImages = await searchEnhancedImages(
         style, 
@@ -88,7 +102,14 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
       curatedImages.push(...additionalImages)
     }
 
-    return shuffleArray(curatedImages).slice(0, totalImages)
+    // Add content type metadata for varied sizing
+    const enhancedImages = curatedImages.map((image, index) => ({
+      ...image,
+      contentType: getImageContentType(image, index),
+      sizeVariant: getSizeVariant(index, totalImages)
+    }))
+
+    return shuffleArray(enhancedImages).slice(0, totalImages)
 
   } catch (error) {
     console.error('Error in curated search:', error)
@@ -202,4 +223,54 @@ export const sortImagesByQuality = (images) => {
     const scoreB = scoreImageQuality(b)
     return scoreB - scoreA
   })
+}
+
+// Determine content type for better layout decisions
+const getImageContentType = (image, index) => {
+  const alt = (image.alt || '').toLowerCase()
+  const contentTypes = ['people', 'portrait', 'person', 'face']
+  const architectureTypes = ['building', 'architecture', 'interior', 'room']
+  const textTypes = ['typography', 'text', 'lettering', 'sign']
+  const artTypes = ['drawing', 'illustration', 'sketch', 'art']
+  
+  if (contentTypes.some(type => alt.includes(type))) return 'people'
+  if (architectureTypes.some(type => alt.includes(type))) return 'architecture'
+  if (textTypes.some(type => alt.includes(type))) return 'typography'
+  if (artTypes.some(type => alt.includes(type))) return 'art'
+  
+  // Distribute types evenly if not detected
+  const types = ['people', 'architecture', 'typography', 'art', 'object']
+  return types[index % types.length]
+}
+
+// Generate varied sizes for more interesting layouts
+const getSizeVariant = (index, totalCount) => {
+  const variants = [
+    'small',    // 180x140
+    'medium',   // 220x180  
+    'large',    // 280x220
+    'wide',     // 300x160
+    'tall'      // 160x280
+  ]
+  
+  // Ensure we have a good mix of sizes
+  const sizePattern = [
+    'large', 'small', 'medium', 'wide', 'small', 
+    'medium', 'tall', 'small', 'large'
+  ]
+  
+  return sizePattern[index % sizePattern.length] || 'medium'
+}
+
+// Get size dimensions based on variant
+export const getSizeDimensions = (variant) => {
+  const sizes = {
+    small:  { width: 180, height: 140 },
+    medium: { width: 220, height: 180 },
+    large:  { width: 280, height: 220 },
+    wide:   { width: 300, height: 160 },
+    tall:   { width: 160, height: 280 }
+  }
+  
+  return sizes[variant] || sizes.medium
 }
