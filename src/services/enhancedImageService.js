@@ -52,12 +52,12 @@ export const searchEnhancedImages = async (style, color, totalCount = 9, mode = 
 // Smart mood board image curation
 export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote') => {
   try {
-    const totalImages = layout === 'milanote' ? 9 : 12
+    const totalImages = Math.max(7, layout === 'milanote' ? 9 : 12) // Minimum 7 images
 
     // Strategy: Much more diverse content mix
     const searchStrategies = [
-      // People & Fashion
-      { terms: ['portrait', 'people', 'fashion', 'model'], count: 2 },
+      // People & Fashion - More images
+      { terms: ['portrait', 'people', 'fashion', 'model'], count: 3 },
       // Nature & Objects  
       { terms: ['nature', 'flower', 'landscape', 'food'], count: 2 },
       // Art & Design
@@ -75,7 +75,7 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
       Promise.all(searchStrategies.map(async (strategy) => {
         const searchTerm = `${strategy.terms[Math.floor(Math.random() * strategy.terms.length)]} ${style}`
         return await searchEnhancedImages(searchTerm, color, strategy.count, 'unsplash')
-      })).then(results => results.flat().slice(0, 9))
+      })).then(results => results.flat().slice(0, totalImages))
     ])
 
     // Use the diverse images directly

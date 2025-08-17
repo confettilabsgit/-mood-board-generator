@@ -150,8 +150,8 @@ function App() {
   const generateVariedPosition = (index, totalCount, dimensions) => {
     const canvasWidth = 1200
     const canvasHeight = 800
-    const clusterCenterX = canvasWidth * 0.4 // Move cluster to left side
-    const clusterCenterY = canvasHeight * 0.35 // Move cluster to upper area
+    const clusterCenterX = canvasWidth * 0.3 // Move cluster further left
+    const clusterCenterY = canvasHeight * 0.3 // Move cluster to upper area
     const clusterRadius = 250 // Tighter clustering
     
     // Create clustered positioning with some structure
