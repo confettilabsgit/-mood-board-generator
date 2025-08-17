@@ -30,6 +30,155 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
 
+  const generateColorPalette = (baseColor) => {
+    const r = parseInt(baseColor.slice(1, 3), 16)
+    const g = parseInt(baseColor.slice(3, 5), 16)
+    const b = parseInt(baseColor.slice(5, 7), 16)
+    
+    // Create variations of the base color
+    const palette = [
+      baseColor, // Original
+      `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`, // Lighter
+      `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`, // Darker
+      `rgb(${Math.min(255, r + 20)}, ${g}, ${Math.max(0, b - 20)})`, // Variation 1
+      '#ffffff', // White
+      '#000000'  // Black
+    ]
+    
+    return palette
+  }
+
+  const addColorSwatches = (ctx, color, canvasWidth, canvasHeight, style) => {
+    const palette = generateColorPalette(color)
+    const swatchSize = 60
+    const spacing = 10
+    
+    // Position swatches in available space
+    const startX = canvasWidth - (palette.length * (swatchSize + spacing)) - 30
+    const startY = 30
+    
+    palette.forEach((swatchColor, index) => {
+      const x = startX + index * (swatchSize + spacing)
+      const y = startY
+      
+      // Draw swatch with shadow
+      ctx.save()
+      ctx.shadowColor = 'rgba(0,0,0,0.3)'
+      ctx.shadowBlur = 8
+      ctx.shadowOffsetX = 2
+      ctx.shadowOffsetY = 2
+      
+      ctx.fillStyle = swatchColor
+      ctx.fillRect(x, y, swatchSize, swatchSize)
+      
+      // Add white border for contrast
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 2
+      ctx.strokeRect(x, y, swatchSize, swatchSize)
+      
+      ctx.restore()
+    })
+    
+    // Add vertical color strip
+    const stripWidth = 20
+    const stripHeight = 200
+    const stripX = 30
+    const stripY = canvasHeight - stripHeight - 30
+    
+    // Create gradient strip
+    const gradient = ctx.createLinearGradient(stripX, stripY, stripX, stripY + stripHeight)
+    gradient.addColorStop(0, color)
+    gradient.addColorStop(0.5, hexToRgba(color, 0.7))
+    gradient.addColorStop(1, hexToRgba(color, 0.3))
+    
+    ctx.save()
+    ctx.shadowColor = 'rgba(0,0,0,0.3)'
+    ctx.shadowBlur = 8
+    ctx.fillStyle = gradient
+    ctx.fillRect(stripX, stripY, stripWidth, stripHeight)
+    ctx.restore()
+  }
+
+  const addDesignElements = (ctx, color, canvasWidth, canvasHeight, style) => {
+    // Add geometric shapes and textures based on style
+    ctx.save()
+    
+    if (style === 'modern') {
+      // Clean geometric shapes
+      ctx.fillStyle = color
+      ctx.fillRect(canvasWidth - 120, canvasHeight - 120, 80, 80)
+      
+      // Minimal lines
+      ctx.strokeStyle = color
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.moveTo(50, canvasHeight - 50)
+      ctx.lineTo(200, canvasHeight - 50)
+      ctx.stroke()
+      
+    } else if (style === 'vintage') {
+      // Ornamental border elements
+      ctx.strokeStyle = color
+      ctx.lineWidth = 2
+      ctx.setLineDash([10, 5])
+      ctx.strokeRect(20, 20, 150, 100)
+      ctx.setLineDash([])
+      
+    } else if (style === 'bohemian') {
+      // Organic shapes and mandalas
+      ctx.strokeStyle = color
+      ctx.lineWidth = 2
+      const centerX = canvasWidth - 100
+      const centerY = 100
+      
+      for (let i = 0; i < 8; i++) {
+        const angle = (i * Math.PI) / 4
+        ctx.beginPath()
+        ctx.arc(centerX + Math.cos(angle) * 30, centerY + Math.sin(angle) * 30, 10, 0, Math.PI * 2)
+        ctx.stroke()
+      }
+      
+    } else if (style === 'industrial') {
+      // Angular, structural elements
+      ctx.fillStyle = color
+      const points = [
+        [canvasWidth - 150, canvasHeight - 100],
+        [canvasWidth - 100, canvasHeight - 150],
+        [canvasWidth - 50, canvasHeight - 100],
+        [canvasWidth - 100, canvasHeight - 50]
+      ]
+      
+      ctx.beginPath()
+      ctx.moveTo(points[0][0], points[0][1])
+      points.forEach(point => ctx.lineTo(point[0], point[1]))
+      ctx.closePath()
+      ctx.fill()
+      
+    } else if (style === 'nature') {
+      // Organic, flowing elements
+      ctx.strokeStyle = color
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.moveTo(canvasWidth - 150, 50)
+      ctx.quadraticCurveTo(canvasWidth - 100, 100, canvasWidth - 50, 80)
+      ctx.quadraticCurveTo(canvasWidth - 20, 120, canvasWidth - 10, 150)
+      ctx.stroke()
+      
+    } else if (style === 'luxury') {
+      // Elegant, refined elements
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.arc(canvasWidth - 100, canvasHeight - 100, 40, 0, Math.PI * 2)
+      ctx.fill()
+      
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
+    
+    ctx.restore()
+  }
+
   const generateMoodBoard = async () => {
     if (!canvasRef.current) return
 
@@ -94,12 +243,8 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
           ctx.closePath()
           ctx.clip()
           
-          // Draw image
+          // Draw image without color overlay
           ctx.drawImage(img, -layout.width/2, -layout.height/2, layout.width, layout.height)
-          
-          // Add subtle color overlay
-          ctx.fillStyle = hexToRgba(color, 0.15)
-          ctx.fillRect(-layout.width/2, -layout.height/2, layout.width, layout.height)
           
           ctx.restore()
           resolve()
@@ -112,7 +257,7 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
           ctx.translate(layout.x + layout.width/2, layout.y + layout.height/2)
           ctx.rotate((layout.rotation || 0) * Math.PI / 180)
           
-          ctx.fillStyle = hexToRgba(color, 0.4)
+          ctx.fillStyle = hexToRgba(color, 0.8)
           ctx.shadowColor = 'rgba(0,0,0,0.2)'
           ctx.shadowBlur = 8
           ctx.fillRect(-layout.width/2, -layout.height/2, layout.width, layout.height)
@@ -127,26 +272,11 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
     try {
       await Promise.all(loadPromises)
       
-      // Add decorative elements
-      ctx.fillStyle = hexToRgba(color, 0.6)
-      ctx.beginPath()
-      ctx.arc(700, 500, 30, 0, 2 * Math.PI)
-      ctx.fill()
-
-      ctx.fillStyle = hexToRgba(color, 0.4)
-      ctx.fillRect(20, 20, 100, 20)
+      // Add color swatches
+      addColorSwatches(ctx, color, canvas.width, canvas.height, style)
       
-      // Add style-specific decorative elements
-      if (style === 'modern') {
-        ctx.fillStyle = hexToRgba(color, 0.3)
-        ctx.fillRect(680, 20, 80, 80)
-      } else if (style === 'vintage') {
-        ctx.strokeStyle = hexToRgba(color, 0.5)
-        ctx.lineWidth = 2
-        ctx.setLineDash([5, 5])
-        ctx.strokeRect(650, 400, 120, 120)
-        ctx.setLineDash([])
-      }
+      // Add design elements and textures
+      addDesignElements(ctx, color, canvas.width, canvas.height, style)
 
     } catch (error) {
       console.error('Error loading images:', error)
