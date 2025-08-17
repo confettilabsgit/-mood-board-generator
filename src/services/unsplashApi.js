@@ -3,12 +3,12 @@ const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY || 'demo'
 const API_BASE = 'https://api.unsplash.com'
 
 const styleKeywords = {
-  modern: ['minimalist', 'contemporary', 'clean', 'geometric', 'architecture'],
-  vintage: ['vintage', 'retro', 'antique', 'classic', 'old'],
-  bohemian: ['bohemian', 'artistic', 'creative', 'eclectic', 'boho'],
-  industrial: ['industrial', 'urban', 'concrete', 'metal', 'factory'],
-  nature: ['nature', 'forest', 'landscape', 'botanical', 'organic'],
-  luxury: ['luxury', 'elegant', 'sophisticated', 'premium', 'gold']
+  modern: ['portrait', 'fashion', 'art', 'design', 'people', 'creative'],
+  vintage: ['portrait', 'fashion', 'photography', 'art', 'people', 'culture'],
+  bohemian: ['art', 'people', 'creative', 'culture', 'travel', 'lifestyle'],
+  industrial: ['portrait', 'urban', 'street', 'people', 'art', 'design'],
+  nature: ['landscape', 'nature', 'people', 'travel', 'food', 'outdoor'],
+  luxury: ['fashion', 'portrait', 'lifestyle', 'art', 'culture', 'design']
 }
 
 export const searchImages = async (style, color, count = 9, aiKeywords = null) => {

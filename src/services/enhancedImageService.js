@@ -54,56 +54,55 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
   try {
     const totalImages = layout === 'milanote' ? 9 : 12
 
-    // Strategy: Diverse content mix - people, buildings, typography, drawings, objects
-    const contentTypes = [
-      ['people', 'portrait', 'person', 'face'],
-      ['architecture', 'building', 'interior', 'room'],
-      ['typography', 'text', 'lettering', 'sign'],
-      ['drawing', 'illustration', 'sketch', 'art'],
-      ['object', 'still life', 'product', 'texture']
+    // Strategy: Much more diverse content mix
+    const searchStrategies = [
+      // People & Fashion
+      { terms: ['portrait', 'people', 'fashion', 'model'], count: 2 },
+      // Nature & Objects  
+      { terms: ['nature', 'flower', 'landscape', 'food'], count: 2 },
+      // Art & Design
+      { terms: ['art', 'illustration', 'graphic design', 'painting'], count: 2 },
+      // Architecture (but specific)
+      { terms: ['building', 'architecture', 'street', 'urban'], count: 1 },
+      // Typography & Text
+      { terms: ['typography', 'sign', 'text', 'lettering'], count: 1 },
+      // Lifestyle & Objects
+      { terms: ['lifestyle', 'product', 'texture', 'abstract'], count: 1 }
     ]
 
-    const [diverseImages, colorImages, neutralImages] = await Promise.all([
-      // Get diverse content types
-      Promise.all(contentTypes.map(keywords => 
-        searchEnhancedImages(style, color, 2, 'mixed').then(images => 
-          searchLummiImages(keywords.join(' '), color, 1, [style]).then(lummiImages => 
-            [...images.slice(0, 1), ...lummiImages.slice(0, 1)]
-          )
-        )
-      )).then(results => results.flat().slice(0, 6)),
-      
-      // Color-focused images
-      searchByDominantColor(color, style, 2),
-      
-      // Neutral/B&W images  
-      searchEnhancedImages(style, '#000000', 3, 'mixed')
+    const [diverseImages] = await Promise.all([
+      // Get truly diverse content
+      Promise.all(searchStrategies.map(async (strategy) => {
+        const searchTerm = `${strategy.terms[Math.floor(Math.random() * strategy.terms.length)]} ${style}`
+        return await searchEnhancedImages(searchTerm, color, strategy.count, 'unsplash')
+      })).then(results => results.flat().slice(0, 9))
     ])
 
-    // Combine all images and categorize
-    const allImages = [...diverseImages, ...colorImages, ...neutralImages]
-    const categorized = categorizeImagesByColor(allImages, color)
+    // Use the diverse images directly
+    const allImages = diverseImages
 
-    // Create the final curated mix with diverse content
-    const curatedImages = [
-      ...categorized.blackWhite.slice(0, 4),  // 4 B&W images
-      ...categorized.neutral.slice(0, 3),     // 3 neutral images  
-      ...categorized.colorPop.slice(0, 2)     // 2 color-pop images
-    ]
-
-    // Fill any gaps with diverse search
-    if (curatedImages.length < totalImages) {
-      const additionalImages = await searchEnhancedImages(
-        style, 
-        color, 
-        totalImages - curatedImages.length, 
-        'mixed'
-      )
-      curatedImages.push(...additionalImages)
+    // If we don't have enough images, supplement with additional searches
+    if (allImages.length < totalImages) {
+      const additionalSearches = [
+        'creative ' + style,
+        'artistic ' + style, 
+        'beautiful ' + style
+      ]
+      
+      for (const searchTerm of additionalSearches) {
+        if (allImages.length >= totalImages) break
+        const moreImages = await searchEnhancedImages(
+          searchTerm, 
+          color, 
+          totalImages - allImages.length, 
+          'unsplash'
+        )
+        allImages.push(...moreImages)
+      }
     }
 
     // Add content type metadata for varied sizing
-    const enhancedImages = curatedImages.map((image, index) => ({
+    const enhancedImages = allImages.map((image, index) => ({
       ...image,
       contentType: getImageContentType(image, index),
       sizeVariant: getSizeVariant(index, totalImages)

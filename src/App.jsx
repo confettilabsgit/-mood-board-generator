@@ -52,13 +52,13 @@ function App() {
         }
       })
 
-      // Add color swatches
+      // Add color swatches below the image cluster
       const colorPalette = generateColorPalette(selectedColor)
       const swatchElements = colorPalette.slice(0, 3).map((swatch, index) => ({
         id: `auto-swatch-${Date.now()}-${index}`,
         type: 'swatch',
         data: swatch,
-        position: { x: 50 + index * 140, y: 50 },
+        position: { x: 100 + index * 140, y: 550 }, // Moved below cluster
         size: { width: 120, height: 100 },
         rotation: 0,
         zIndex: 100 + index
@@ -74,7 +74,7 @@ function App() {
           fontSize: '16px',
           backgroundColor: 'rgba(255,255,255,0.9)'
         },
-        position: { x: 50, y: 500 },
+        position: { x: 700, y: 400 }, // Right side of cluster
         size: { width: 200, height: 80 },
         rotation: 0,
         zIndex: 200
@@ -146,13 +146,13 @@ function App() {
     return sizePattern[index % sizePattern.length] || 'medium'
   }
 
-  // Generate clustered positions for tighter layout
+  // Generate clustered positions for tighter layout starting from top-left
   const generateVariedPosition = (index, totalCount, dimensions) => {
     const canvasWidth = 1200
     const canvasHeight = 800
-    const clusterCenterX = canvasWidth / 2
-    const clusterCenterY = canvasHeight / 2 + 50 // Offset down for swatches at top
-    const clusterRadius = 300 // Tighter clustering
+    const clusterCenterX = canvasWidth * 0.4 // Move cluster to left side
+    const clusterCenterY = canvasHeight * 0.35 // Move cluster to upper area
+    const clusterRadius = 250 // Tighter clustering
     
     // Create clustered positioning with some structure
     const angle = (index / totalCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.8
@@ -171,7 +171,7 @@ function App() {
     
     return {
       x: Math.max(50, Math.min(canvasWidth - dimensions.width - 50, baseX + offsetX)),
-      y: Math.max(100, Math.min(canvasHeight - dimensions.height - 50, baseY + offsetY))
+      y: Math.max(50, Math.min(canvasHeight - dimensions.height - 50, baseY + offsetY))
     }
   }
 
