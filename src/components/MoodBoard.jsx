@@ -100,79 +100,65 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
   }
 
   const addDesignElements = (ctx, color, canvasWidth, canvasHeight, style) => {
-    // Add geometric shapes and textures based on style
+    // Add subtle geometric shapes in empty spaces only (not overlapping photos)
     ctx.save()
     
     if (style === 'modern') {
-      // Clean geometric shapes
-      ctx.fillStyle = color
-      ctx.fillRect(canvasWidth - 120, canvasHeight - 120, 80, 80)
-      
-      // Minimal lines
+      // Minimal lines at edges
       ctx.strokeStyle = color
-      ctx.lineWidth = 3
+      ctx.lineWidth = 2
       ctx.beginPath()
-      ctx.moveTo(50, canvasHeight - 50)
-      ctx.lineTo(200, canvasHeight - 50)
+      ctx.moveTo(20, canvasHeight - 20)
+      ctx.lineTo(120, canvasHeight - 20)
       ctx.stroke()
       
     } else if (style === 'vintage') {
-      // Ornamental border elements
+      // Small decorative corner element
       ctx.strokeStyle = color
-      ctx.lineWidth = 2
-      ctx.setLineDash([10, 5])
-      ctx.strokeRect(20, 20, 150, 100)
+      ctx.lineWidth = 1
+      ctx.setLineDash([5, 3])
+      ctx.strokeRect(canvasWidth - 80, canvasHeight - 80, 60, 60)
       ctx.setLineDash([])
       
     } else if (style === 'bohemian') {
-      // Organic shapes and mandalas
+      // Small mandala in corner
       ctx.strokeStyle = color
-      ctx.lineWidth = 2
-      const centerX = canvasWidth - 100
-      const centerY = 100
+      ctx.lineWidth = 1
+      const centerX = canvasWidth - 50
+      const centerY = canvasHeight - 50
       
-      for (let i = 0; i < 8; i++) {
-        const angle = (i * Math.PI) / 4
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI) / 3
         ctx.beginPath()
-        ctx.arc(centerX + Math.cos(angle) * 30, centerY + Math.sin(angle) * 30, 10, 0, Math.PI * 2)
+        ctx.arc(centerX + Math.cos(angle) * 15, centerY + Math.sin(angle) * 15, 5, 0, Math.PI * 2)
         ctx.stroke()
       }
       
     } else if (style === 'industrial') {
-      // Angular, structural elements
-      ctx.fillStyle = color
-      const points = [
-        [canvasWidth - 150, canvasHeight - 100],
-        [canvasWidth - 100, canvasHeight - 150],
-        [canvasWidth - 50, canvasHeight - 100],
-        [canvasWidth - 100, canvasHeight - 50]
-      ]
-      
-      ctx.beginPath()
-      ctx.moveTo(points[0][0], points[0][1])
-      points.forEach(point => ctx.lineTo(point[0], point[1]))
-      ctx.closePath()
-      ctx.fill()
-      
-    } else if (style === 'nature') {
-      // Organic, flowing elements
+      // Simple angular line
       ctx.strokeStyle = color
       ctx.lineWidth = 3
       ctx.beginPath()
-      ctx.moveTo(canvasWidth - 150, 50)
-      ctx.quadraticCurveTo(canvasWidth - 100, 100, canvasWidth - 50, 80)
-      ctx.quadraticCurveTo(canvasWidth - 20, 120, canvasWidth - 10, 150)
+      ctx.moveTo(canvasWidth - 100, canvasHeight - 30)
+      ctx.lineTo(canvasWidth - 30, canvasHeight - 30)
+      ctx.lineTo(canvasWidth - 30, canvasHeight - 60)
+      ctx.stroke()
+      
+    } else if (style === 'nature') {
+      // Organic flowing line at bottom
+      ctx.strokeStyle = color
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(20, canvasHeight - 40)
+      ctx.quadraticCurveTo(80, canvasHeight - 60, 140, canvasHeight - 40)
       ctx.stroke()
       
     } else if (style === 'luxury') {
-      // Elegant, refined elements
-      ctx.fillStyle = color
-      ctx.beginPath()
-      ctx.arc(canvasWidth - 100, canvasHeight - 100, 40, 0, Math.PI * 2)
-      ctx.fill()
-      
-      ctx.strokeStyle = '#ffffff'
+      // Elegant corner accent
+      ctx.strokeStyle = color
       ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.arc(canvasWidth - 40, canvasHeight - 40, 20, 0, Math.PI * 2)
       ctx.stroke()
     }
     
@@ -212,10 +198,26 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
         img.onload = () => {
           const layout = smartLayouts[index]
           
-          // Draw image in black and white
-          ctx.filter = 'grayscale(100%)'
+          // Draw image first
           ctx.drawImage(img, layout.x, layout.y, layout.width, layout.height)
-          ctx.filter = 'none' // Reset filter
+          
+          // Convert to grayscale manually
+          const imageData = ctx.getImageData(layout.x, layout.y, layout.width, layout.height)
+          const data = imageData.data
+          
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i]
+            const g = data[i + 1] 
+            const b = data[i + 2]
+            // Convert to grayscale using luminance formula
+            const gray = 0.299 * r + 0.587 * g + 0.114 * b
+            data[i] = gray     // red
+            data[i + 1] = gray // green
+            data[i + 2] = gray // blue
+            // alpha stays the same
+          }
+          
+          ctx.putImageData(imageData, layout.x, layout.y)
           
           resolve()
         }
