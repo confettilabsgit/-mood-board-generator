@@ -1,77 +1,162 @@
 import { useState } from 'react'
-import ColorPicker from './components/ColorPicker'
-import StyleSelector from './components/StyleSelector'
-import MoodBoard from './components/MoodBoard'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import MilanoteSidebar from './components/MilanoteSidebar'
+import MilanoteCanvas from './components/MilanoteCanvas'
+import { searchImages } from './services/unsplashApi'
+import { generateAIKeywords, generateSmartLayout } from './services/aiService'
 
 function App() {
-  const [selectedColor, setSelectedColor] = useState('#ff6b6b')
+  const [selectedColor, setSelectedColor] = useState('#C03939') // Default red like the example
   const [selectedStyle, setSelectedStyle] = useState('modern')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [canvasElements, setCanvasElements] = useState([])
 
-  const handleGenerate = () => {
+  const handleAutoGenerate = async () => {
     setIsGenerating(true)
-    // This will trigger the mood board generation
+    
+    try {
+      // Fetch a mix of images: B&W, neutral, and color-pop images
+      const [bwImages, neutralImages, colorImages] = await Promise.all([
+        searchImages(selectedStyle, selectedColor, 4, ['black white', 'monochrome', 'minimal']),
+        searchImages(selectedStyle, selectedColor, 3, ['neutral', 'beige', 'minimal', 'clean']),
+        searchImages(selectedStyle, selectedColor, 2, generateAIKeywords(selectedColor, selectedStyle))
+      ])
+
+      // Combine and shuffle images
+      const allImages = [...bwImages, ...neutralImages, ...colorImages]
+      
+      // Generate smart layout positions
+      const layouts = generateSmartLayout(allImages.length, 1200, 800, selectedStyle)
+      
+      // Create canvas elements
+      const imageElements = allImages.map((image, index) => {
+        const layout = layouts[index] || { x: 100 + (index % 3) * 220, y: 100 + Math.floor(index / 3) * 180, width: 200, height: 150 }
+        
+        return {
+          id: `auto-image-${Date.now()}-${index}`,
+          type: 'image',
+          data: {
+            url: image.url,
+            alt: image.alt,
+            // Apply color pop only to designated color images
+            isColorPop: index >= 7, // Last 2 images get color treatment
+          },
+          position: { x: layout.x, y: layout.y },
+          size: { 
+            width: layout.width + (Math.random() * 80 - 40), // Vary sizes slightly
+            height: layout.height + (Math.random() * 60 - 30)
+          },
+          rotation: (Math.random() - 0.5) * 6, // Slight rotation for organic feel
+          zIndex: index
+        }
+      })
+
+      // Add color swatches
+      const colorPalette = generateColorPalette(selectedColor)
+      const swatchElements = colorPalette.slice(0, 3).map((swatch, index) => ({
+        id: `auto-swatch-${Date.now()}-${index}`,
+        type: 'swatch',
+        data: swatch,
+        position: { x: 50 + index * 140, y: 50 },
+        size: { width: 120, height: 100 },
+        rotation: 0,
+        zIndex: 100 + index
+      }))
+
+      // Add typography example
+      const typographyElement = {
+        id: `auto-text-${Date.now()}`,
+        type: 'text',
+        data: {
+          content: getStyleThemeText(selectedStyle),
+          fontFamily: getStyleFont(selectedStyle),
+          fontSize: '18px',
+          backgroundColor: 'rgba(255,255,255,0.9)'
+        },
+        position: { x: 800, y: 100 },
+        size: { width: 250, height: 150 },
+        rotation: 0,
+        zIndex: 200
+      }
+
+      setCanvasElements([...imageElements, ...swatchElements, typographyElement])
+      
+    } catch (error) {
+      console.error('Error generating mood board:', error)
+    }
+    
+    setIsGenerating(false)
+  }
+
+  const generateColorPalette = (baseColor) => {
+    const r = parseInt(baseColor.slice(1, 3), 16)
+    const g = parseInt(baseColor.slice(3, 5), 16)
+    const b = parseInt(baseColor.slice(5, 7), 16)
+    
+    return [
+      { 
+        hex: baseColor.toUpperCase(), 
+        name: 'Primary', 
+        color: baseColor 
+      },
+      { 
+        hex: `#${Math.min(255, r + 40).toString(16).padStart(2, '0')}${Math.min(255, g + 40).toString(16).padStart(2, '0')}${Math.min(255, b + 40).toString(16).padStart(2, '0')}`.toUpperCase(), 
+        name: 'Light', 
+        color: `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})` 
+      },
+      { 
+        hex: `#${Math.max(0, r - 40).toString(16).padStart(2, '0')}${Math.max(0, g - 40).toString(16).padStart(2, '0')}${Math.max(0, b - 40).toString(16).padStart(2, '0')}`.toUpperCase(), 
+        name: 'Dark', 
+        color: `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})` 
+      }
+    ]
+  }
+
+  const getStyleThemeText = (style) => {
+    const themes = {
+      modern: 'THEMES\n• Minimalism\n• Clean lines\n• Functionality\n• Simplicity',
+      vintage: 'THEMES\n• Nostalgia\n• Heritage\n• Craftsmanship\n• Timeless',
+      bohemian: 'THEMES\n• Freedom\n• Creativity\n• Wanderlust\n• Artistry',
+      industrial: 'THEMES\n• Raw materials\n• Urban edge\n• Functionality\n• Structure',
+      nature: 'THEMES\n• Organic forms\n• Earth tones\n• Sustainability\n• Growth',
+      luxury: 'THEMES\n• Elegance\n• Sophistication\n• Premium quality\n• Exclusivity'
+    }
+    return themes[style] || themes.modern
+  }
+
+  const getStyleFont = (style) => {
+    const fonts = {
+      modern: 'Inter, sans-serif',
+      vintage: '"Playfair Display", serif',
+      bohemian: '"Amatic SC", cursive',
+      industrial: '"Roboto Condensed", sans-serif',
+      nature: '"Nunito", sans-serif',
+      luxury: '"Cormorant Garamond", serif'
+    }
+    return fonts[style] || fonts.modern
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
-            Mood Board Generator
-          </h1>
-          <p className="text-base sm:text-lg text-gray-600 px-4 mb-6">
-            Choose a color and style to create your perfect mood board
-          </p>
-          
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg transform hover:scale-105 disabled:transform-none"
-          >
-            {isGenerating ? (
-              <span className="flex items-center gap-3">
-                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating Magic...
-              </span>
-            ) : (
-              <span className="flex items-center gap-3">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                </svg>
-                ✨ Generate Mood Board ✨
-              </span>
-            )}
-          </button>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-1 space-y-6 lg:space-y-8 order-2 lg:order-1">
-            <ColorPicker 
-              selectedColor={selectedColor}
-              onColorChange={setSelectedColor}
-            />
-            
-            <StyleSelector 
-              selectedStyle={selectedStyle}
-              onStyleChange={setSelectedStyle}
-            />
-          </div>
-
-          <div className="lg:col-span-2 order-1 lg:order-2">
-            <MoodBoard 
-              color={selectedColor}
-              style={selectedStyle}
-              isGenerating={isGenerating}
-              onGenerationComplete={() => setIsGenerating(false)}
-            />
-          </div>
-        </div>
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-screen bg-gray-100 flex">
+        <MilanoteSidebar
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
+          selectedStyle={selectedStyle}
+          onStyleChange={setSelectedStyle}
+          onAutoGenerate={handleAutoGenerate}
+          isGenerating={isGenerating}
+        />
+        
+        <MilanoteCanvas
+          selectedColor={selectedColor}
+          selectedStyle={selectedStyle}
+          elements={canvasElements}
+          onElementsChange={setCanvasElements}
+        />
       </div>
-    </div>
+    </DndProvider>
   )
 }
 
