@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useDrag } from 'react-dnd'
 import CanvaColorPicker from './CanvaColorPicker'
 import StyleSelector from './StyleSelector'
@@ -14,21 +14,22 @@ const MilanoteSidebar = ({
 }) => {
   const [activeTab, setActiveTab] = useState('tools')
 
-  const generateColorPalette = (baseColor) => {
-    const r = parseInt(baseColor.slice(1, 3), 16)
-    const g = parseInt(baseColor.slice(3, 5), 16)
-    const b = parseInt(baseColor.slice(5, 7), 16)
+  // Memoized color palette to prevent re-generation
+  const colorPalette = useMemo(() => {
+    const r = parseInt(selectedColor.slice(1, 3), 16)
+    const g = parseInt(selectedColor.slice(3, 5), 16)
+    const b = parseInt(selectedColor.slice(5, 7), 16)
     
     const colorNames = ['Primary', 'Light', 'Dark', 'Accent', 'Neutral']
     
     return [
-      { hex: baseColor, name: colorNames[0], color: baseColor },
+      { hex: selectedColor, name: colorNames[0], color: selectedColor },
       { hex: `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`, name: colorNames[1], color: `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})` },
       { hex: `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`, name: colorNames[2], color: `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})` },
       { hex: '#ffffff', name: 'White', color: '#ffffff' },
       { hex: '#000000', name: 'Black', color: '#000000' }
     ]
-  }
+  }, [selectedColor])
 
   const tabs = [
     { id: 'tools', name: 'Tools & Elements', icon: '🎨' },
@@ -90,8 +91,8 @@ const MilanoteSidebar = ({
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Color Swatches</h3>
               <div className="grid grid-cols-2 gap-2">
-                {generateColorPalette(selectedColor).map((swatch, index) => (
-                  <DraggableColorSwatch key={index} swatch={swatch} />
+                {colorPalette.map((swatch, index) => (
+                  <DraggableColorSwatch key={`${swatch.hex}-${index}`} swatch={swatch} />
                 ))}
               </div>
             </div>

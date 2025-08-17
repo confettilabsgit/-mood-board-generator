@@ -1,4 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+
+// Debounce utility to prevent rapid updates
+const debounce = (func, wait) => {
+  let timeout
+  return (...args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }
+}
 
 const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
   const [colorMode, setColorMode] = useState('complementary')
@@ -40,8 +49,8 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
     return rgbToHex(r, g, b)
   }
 
-  // Generate color combinations
-  const getColorCombination = () => {
+  // Memoized color combinations to prevent recalculation
+  const colorCombinations = useMemo(() => {
     const currentHsl = [hue, saturation, lightness]
     
     switch (colorMode) {
@@ -84,7 +93,7 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
       default:
         return [currentHsl]
     }
-  }
+  }, [hue, saturation, lightness, colorMode])
 
   // Draw color wheel
   useEffect(() => {
@@ -228,13 +237,21 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
     setHue(newHue)
   }
 
+  // Debounced color change to prevent jittery updates
+  const debouncedColorChange = useCallback(
+    debounce((color) => {
+      if (color !== selectedColor) {
+        onColorChange(color)
+      }
+    }, 100),
+    [selectedColor, onColorChange]
+  )
+
   // Update parent component when color changes
   useEffect(() => {
     const currentColor = getCurrentColor()
-    if (currentColor !== selectedColor) {
-      onColorChange(currentColor)
-    }
-  }, [hue, saturation, lightness])
+    debouncedColorChange(currentColor)
+  }, [hue, saturation, lightness, debouncedColorChange])
 
   // Parse incoming color changes
   useEffect(() => {
@@ -265,8 +282,6 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
       setLightness(l * 100)
     }
   }, [selectedColor])
-
-  const combinations = getColorCombination()
 
   return (
     <div className="space-y-4">
@@ -326,14 +341,14 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
 
       {/* Color Combination Preview */}
       <div className="grid grid-cols-2 gap-2 min-h-[60px]">
-        {combinations.map((color, index) => {
+        {colorCombinations.map((color, index) => {
           const [h, s, l] = color
           const [r, g, b] = hslToRgb(h, s, l)
           const hex = rgbToHex(r, g, b)
           
           return (
             <div 
-              key={index}
+              key={`combo-${index}-${hex}`}
               className="h-12 rounded cursor-pointer border border-gray-200 flex items-end"
               style={{ backgroundColor: hex }}
               onClick={() => onColorChange(hex)}
