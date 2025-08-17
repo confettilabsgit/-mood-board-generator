@@ -3,7 +3,7 @@ import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import MilanoteSidebar from './components/MilanoteSidebar'
 import MilanoteCanvas from './components/MilanoteCanvas'
-import { searchImages } from './services/unsplashApi'
+import { getCuratedMoodBoardImages } from './services/enhancedImageService'
 import { generateAIKeywords, generateSmartLayout } from './services/aiService'
 
 function App() {
@@ -16,15 +16,8 @@ function App() {
     setIsGenerating(true)
     
     try {
-      // Fetch a mix of images: B&W, neutral, and color-pop images
-      const [bwImages, neutralImages, colorImages] = await Promise.all([
-        searchImages(selectedStyle, selectedColor, 4, ['black white', 'monochrome', 'minimal']),
-        searchImages(selectedStyle, selectedColor, 3, ['neutral', 'beige', 'minimal', 'clean']),
-        searchImages(selectedStyle, selectedColor, 2, generateAIKeywords(selectedColor, selectedStyle))
-      ])
-
-      // Combine and shuffle images
-      const allImages = [...bwImages, ...neutralImages, ...colorImages]
+      // Get curated images using enhanced service with Lummi integration
+      const allImages = await getCuratedMoodBoardImages(selectedStyle, selectedColor, 'milanote')
       
       // Generate smart layout positions
       const layouts = generateSmartLayout(allImages.length, 1200, 800, selectedStyle)
@@ -39,8 +32,11 @@ function App() {
           data: {
             url: image.url,
             alt: image.alt,
-            // Apply color pop only to designated color images
-            isColorPop: index >= 7, // Last 2 images get color treatment
+            // Use Lummi's color analysis for better color pop detection
+            isColorPop: image.isColorPop !== undefined ? image.isColorPop : (image.category === 'colorPop' || index >= 7),
+            colors: image.colors || [],
+            dominantColor: image.dominantColor,
+            source: image.source || 'enhanced'
           },
           position: { x: layout.x, y: layout.y },
           size: { 

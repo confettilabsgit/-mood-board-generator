@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDrag } from 'react-dnd'
 import ColorPicker from './ColorPicker'
 import StyleSelector from './StyleSelector'
+import { getColorThemedCollection } from '../services/enhancedImageService'
 
 const MilanoteSidebar = ({ 
   selectedColor, 
@@ -262,17 +263,42 @@ const DraggableText = ({ content, fontSize }) => {
 }
 
 const ImageLibrary = ({ selectedStyle, selectedColor }) => {
-  // This would integrate with your existing Unsplash API
-  const sampleImages = [
-    { url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400', alt: 'Modern architecture' },
-    { url: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=400', alt: 'Clean interior' },
-    { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=400', alt: 'Minimalist design' }
-  ]
+  const [images, setImages] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      setIsLoading(true)
+      try {
+        const themeImages = await getColorThemedCollection(selectedColor, selectedStyle, 6)
+        setImages(themeImages)
+      } catch (error) {
+        console.error('Error fetching themed images:', error)
+        // Fallback to sample images
+        setImages([
+          { url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400', alt: 'Modern architecture' },
+          { url: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=400', alt: 'Clean interior' },
+          { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=400', alt: 'Minimalist design' }
+        ])
+      }
+      setIsLoading(false)
+    }
+
+    fetchImages()
+  }, [selectedStyle, selectedColor])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 gap-3">
-      {sampleImages.map((image, index) => (
-        <DraggableImage key={index} image={image} />
+      {images.map((image, index) => (
+        <DraggableImage key={`${image.id || index}`} image={image} />
       ))}
     </div>
   )
@@ -294,7 +320,7 @@ const DraggableImage = ({ image }) => {
   return (
     <div
       ref={drag}
-      className={`cursor-move border border-gray-200 rounded overflow-hidden hover:border-gray-300 ${
+      className={`cursor-move border border-gray-200 rounded overflow-hidden hover:border-gray-300 relative ${
         isDragging ? 'opacity-50' : ''
       }`}
     >
@@ -302,8 +328,16 @@ const DraggableImage = ({ image }) => {
         src={image.url}
         alt={image.alt}
         className="w-full h-24 object-cover"
-        style={{ filter: 'grayscale(100%)' }}
+        style={{ 
+          filter: image.isColorPop === false ? 'grayscale(100%)' : 'none',
+          borderRadius: '4px'
+        }}
       />
+      {image.source === 'lummi' && (
+        <div className="absolute top-1 right-1 bg-purple-500 text-white text-xs px-1 py-0.5 rounded">
+          L
+        </div>
+      )}
     </div>
   )
 }
