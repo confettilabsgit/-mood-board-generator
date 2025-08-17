@@ -7,23 +7,22 @@ import {
 } from './lummiApi'
 import { generateAIKeywords } from './aiService'
 
-// Enhanced image search that combines Unsplash and Lummi
-export const searchEnhancedImages = async (style, color, totalCount = 9, mode = 'mixed') => {
+// Enhanced image search that combines Unsplash and Lummi (style disabled for now)
+export const searchEnhancedImages = async (searchTerm, color, totalCount = 9, mode = 'mixed') => {
   try {
     let allImages = []
 
     if (mode === 'mixed' || mode === 'lummi') {
       // Get images from Lummi with color analysis
       const lummiCount = mode === 'lummi' ? totalCount : Math.ceil(totalCount * 0.6)
-      const lummiImages = await searchLummiImages(style, color, lummiCount)
+      const lummiImages = await searchLummiImages(searchTerm, color, lummiCount)
       allImages = [...allImages, ...lummiImages]
     }
 
     if (mode === 'mixed' || mode === 'unsplash') {
       // Fill remaining with Unsplash images
       const unsplashCount = mode === 'unsplash' ? totalCount : Math.max(3, totalCount - allImages.length)
-      const aiKeywords = generateAIKeywords(color, style)
-      const unsplashImages = await searchUnsplash(style, color, unsplashCount, aiKeywords)
+      const unsplashImages = await searchUnsplash(searchTerm, color, unsplashCount, [])
       
       // Transform Unsplash images to include color analysis placeholder
       const enhancedUnsplashImages = unsplashImages.map(img => ({
@@ -71,9 +70,9 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
     ]
 
     const [diverseImages] = await Promise.all([
-      // Get truly diverse content
+      // Get truly diverse content WITHOUT style influence
       Promise.all(searchStrategies.map(async (strategy) => {
-        const searchTerm = `${strategy.terms[Math.floor(Math.random() * strategy.terms.length)]} ${style}`
+        const searchTerm = strategy.terms[Math.floor(Math.random() * strategy.terms.length)]
         return await searchEnhancedImages(searchTerm, color, strategy.count, 'unsplash')
       })).then(results => results.flat().slice(0, totalImages))
     ])
@@ -81,12 +80,14 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
     // Use the diverse images directly
     const allImages = diverseImages
 
-    // If we don't have enough images, supplement with additional searches
+    // If we don't have enough images, supplement with additional searches (NO STYLE)
     if (allImages.length < totalImages) {
       const additionalSearches = [
-        'creative ' + style,
-        'artistic ' + style, 
-        'beautiful ' + style
+        'creative',
+        'artistic', 
+        'beautiful',
+        'colorful',
+        'aesthetic'
       ]
       
       for (const searchTerm of additionalSearches) {
