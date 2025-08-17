@@ -212,8 +212,10 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
         img.onload = () => {
           const layout = smartLayouts[index]
           
-          // Draw image naturally without any effects
+          // Draw image in black and white
+          ctx.filter = 'grayscale(100%)'
           ctx.drawImage(img, layout.x, layout.y, layout.width, layout.height)
+          ctx.filter = 'none' // Reset filter
           
           resolve()
         }
