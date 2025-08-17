@@ -36,7 +36,7 @@ const MilanoteSidebar = ({
   ]
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+    <div className="w-1/4 min-w-64 max-w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Mood Board</h1>

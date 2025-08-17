@@ -274,15 +274,15 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
       <div className="relative">
         <canvas
           ref={canvasRef}
-          width={200}
-          height={200}
+          width={160}
+          height={160}
           className="cursor-crosshair"
           onClick={handleCanvasClick}
         />
         <canvas
           ref={hueCanvasRef}
-          width={200}
-          height={200}
+          width={160}
+          height={160}
           className="absolute top-0 left-0 cursor-pointer"
           onClick={handleHueCanvasClick}
         />

@@ -78,7 +78,7 @@ const MilanoteCanvas = ({ selectedColor, selectedStyle, elements, onElementsChan
   }
 
   return (
-    <div className="flex-1 bg-gray-50 relative overflow-hidden">
+    <div className="w-3/4 bg-gray-50 relative overflow-hidden">
       {/* Canvas Controls */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <button
