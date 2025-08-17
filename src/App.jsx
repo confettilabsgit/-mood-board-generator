@@ -20,9 +20,32 @@ function App() {
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
             Mood Board Generator
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 px-4">
+          <p className="text-base sm:text-lg text-gray-600 px-4 mb-6">
             Choose a color and style to create your perfect mood board
           </p>
+          
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg transform hover:scale-105 disabled:transform-none"
+          >
+            {isGenerating ? (
+              <span className="flex items-center gap-3">
+                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating Magic...
+              </span>
+            ) : (
+              <span className="flex items-center gap-3">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                </svg>
+                ✨ Generate Mood Board ✨
+              </span>
+            )}
+          </button>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -36,14 +59,6 @@ function App() {
               selectedStyle={selectedStyle}
               onStyleChange={setSelectedStyle}
             />
-            
-            <button
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-sm sm:text-base"
-            >
-              {isGenerating ? 'Generating...' : 'Generate Mood Board'}
-            </button>
           </div>
 
           <div className="lg:col-span-2 order-1 lg:order-2">
