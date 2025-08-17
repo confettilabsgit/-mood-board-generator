@@ -278,9 +278,9 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
     debouncedColorChange(currentColor)
   }, [hue, saturation, lightness, debouncedColorChange])
 
-  // Initialize from selectedColor
+  // Initialize from selectedColor on mount only
   useEffect(() => {
-    if (selectedColor && selectedColor !== getCurrentColor()) {
+    if (selectedColor) {
       // Convert hex to HSL
       const r = parseInt(selectedColor.slice(1, 3), 16) / 255
       const g = parseInt(selectedColor.slice(3, 5), 16) / 255
@@ -306,7 +306,7 @@ const CanvaColorPicker = ({ selectedColor, onColorChange }) => {
       setSaturation(s * 100)
       setLightness(l * 100)
     }
-  }, [selectedColor])
+  }, []) // Only run on mount
 
   // Draw canvases
   useEffect(() => {

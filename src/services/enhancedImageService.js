@@ -109,7 +109,9 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
       sizeVariant: getSizeVariant(index, totalImages)
     }))
 
-    return shuffleArray(enhancedImages).slice(0, totalImages)
+    // Remove duplicates by URL and shuffle
+    const uniqueImages = removeDuplicateImages(enhancedImages)
+    return shuffleArray(uniqueImages).slice(0, totalImages)
 
   } catch (error) {
     console.error('Error in curated search:', error)
@@ -273,4 +275,17 @@ export const getSizeDimensions = (variant) => {
   }
   
   return sizes[variant] || sizes.medium
+}
+
+// Remove duplicate images by URL
+const removeDuplicateImages = (images) => {
+  const seen = new Set()
+  return images.filter(image => {
+    const url = image.url || image.id
+    if (seen.has(url)) {
+      return false
+    }
+    seen.add(url)
+    return true
+  })
 }

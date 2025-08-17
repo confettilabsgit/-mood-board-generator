@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import MilanoteSidebar from './components/MilanoteSidebar'
@@ -146,31 +146,41 @@ function App() {
     return sizePattern[index % sizePattern.length] || 'medium'
   }
 
-  // Generate varied positions for organic layout
+  // Generate clustered positions for tighter layout
   const generateVariedPosition = (index, totalCount, dimensions) => {
     const canvasWidth = 1200
     const canvasHeight = 800
-    const margin = 50
+    const clusterCenterX = canvasWidth / 2
+    const clusterCenterY = canvasHeight / 2 + 50 // Offset down for swatches at top
+    const clusterRadius = 300 // Tighter clustering
     
-    // Create a loose grid with organic positioning
-    const cols = 3
-    const rows = Math.ceil(totalCount / cols)
+    // Create clustered positioning with some structure
+    const angle = (index / totalCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.8
+    const distance = Math.random() * clusterRadius * 0.8 // Most images closer to center
     
-    const col = index % cols
-    const row = Math.floor(index / cols)
+    // Some images get placed further for visual interest
+    const isOutlier = index % 4 === 0
+    const finalDistance = isOutlier ? clusterRadius : distance
     
-    const baseX = margin + col * (canvasWidth - margin * 2) / cols
-    const baseY = margin + row * (canvasHeight - margin * 2) / rows
+    const baseX = clusterCenterX + Math.cos(angle) * finalDistance
+    const baseY = clusterCenterY + Math.sin(angle) * finalDistance * 0.7 // Flatten vertically
     
-    // Add organic offset
-    const offsetX = (Math.random() - 0.5) * 100
-    const offsetY = (Math.random() - 0.5) * 80
+    // Small random offset for organic feel
+    const offsetX = (Math.random() - 0.5) * 40
+    const offsetY = (Math.random() - 0.5) * 30
     
     return {
-      x: Math.max(margin, Math.min(canvasWidth - dimensions.width - margin, baseX + offsetX)),
-      y: Math.max(margin, Math.min(canvasHeight - dimensions.height - margin, baseY + offsetY))
+      x: Math.max(50, Math.min(canvasWidth - dimensions.width - 50, baseX + offsetX)),
+      y: Math.max(100, Math.min(canvasHeight - dimensions.height - 50, baseY + offsetY))
     }
   }
+
+  // Auto-refresh mood board when style changes
+  useEffect(() => {
+    if (canvasElements.length > 0) {
+      handleAutoGenerate()
+    }
+  }, [selectedStyle])
 
   return (
     <DndProvider backend={HTML5Backend}>

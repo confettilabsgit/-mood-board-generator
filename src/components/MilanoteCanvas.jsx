@@ -6,6 +6,7 @@ const MilanoteCanvas = ({ selectedColor, selectedStyle, elements, onElementsChan
   const [scale, setScale] = useState(1)
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
   const [selectedElements, setSelectedElements] = useState([])
+  const [selectAll, setSelectAll] = useState(false)
 
   const [{ isOver }, drop] = useDrop({
     accept: ['image', 'swatch', 'text'],
@@ -77,10 +78,47 @@ const MilanoteCanvas = ({ selectedColor, selectedStyle, elements, onElementsChan
     setScale(prev => Math.max(0.25, Math.min(3, prev + delta)))
   }
 
+  const handleDeleteElement = (elementId) => {
+    onElementsChange(elements.filter(el => el.id !== elementId))
+    setSelectedElements(prev => prev.filter(id => id !== elementId))
+  }
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedElements([])
+      setSelectAll(false)
+    } else {
+      setSelectedElements(elements.map(el => el.id))
+      setSelectAll(true)
+    }
+  }
+
+  const handleDeleteSelected = () => {
+    onElementsChange(elements.filter(el => !selectedElements.includes(el.id)))
+    setSelectedElements([])
+    setSelectAll(false)
+  }
+
   return (
     <div className="w-3/4 bg-gray-50 relative overflow-hidden">
       {/* Canvas Controls */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <button
+          onClick={handleSelectAll}
+          className={`bg-white border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50 ${
+            selectAll ? 'bg-blue-100 border-blue-300' : ''
+          }`}
+        >
+          {selectAll ? '◉ All' : '○ All'}
+        </button>
+        {selectedElements.length > 0 && (
+          <button
+            onClick={handleDeleteSelected}
+            className="bg-red-500 text-white border border-red-600 rounded px-3 py-1 text-sm hover:bg-red-600"
+          >
+            🗑 Delete ({selectedElements.length})
+          </button>
+        )}
         <button
           onClick={() => handleZoom(0.1)}
           className="bg-white border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
@@ -131,6 +169,7 @@ const MilanoteCanvas = ({ selectedColor, selectedStyle, elements, onElementsChan
             onSelect={handleElementSelect}
             onMove={handleElementMove}
             onResize={handleElementResize}
+            onDelete={handleDeleteElement}
             selectedColor={selectedColor}
             selectedStyle={selectedStyle}
           />
@@ -145,7 +184,7 @@ const MilanoteCanvas = ({ selectedColor, selectedStyle, elements, onElementsChan
   )
 }
 
-const CanvasElement = ({ element, isSelected, onSelect, onMove, onResize, selectedColor, selectedStyle }) => {
+const CanvasElement = ({ element, isSelected, onSelect, onMove, onResize, onDelete, selectedColor, selectedStyle }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
@@ -258,6 +297,18 @@ const CanvasElement = ({ element, isSelected, onSelect, onMove, onResize, select
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white resize-handle cursor-ne-resize" />
           <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white resize-handle cursor-sw-resize" />
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white resize-handle cursor-se-resize" />
+          
+          {/* Delete Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(element.id)
+            }}
+            className="absolute -top-3 -right-3 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 flex items-center justify-center"
+            title="Delete"
+          >
+            ×
+          </button>
         </>
       )}
     </div>
