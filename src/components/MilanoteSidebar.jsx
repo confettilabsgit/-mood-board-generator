@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useDrag } from 'react-dnd'
-import CanvaColorPicker from './CanvaColorPicker'
+// import CanvaColorPicker from './CanvaColorPicker'
 import StyleSelector from './StyleSelector'
 import { getColorThemedCollection } from '../services/enhancedImageService'
 
@@ -75,10 +75,25 @@ const MilanoteSidebar = ({
             {/* Color Picker */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Pick a color</h3>
-              <CanvaColorPicker 
-                selectedColor={selectedColor}
-                onColorChange={onColorChange}
-              />
+              <div className="space-y-3">
+                <input
+                  type="color"
+                  value={selectedColor}
+                  onChange={(e) => onColorChange(e.target.value)}
+                  className="w-full h-12 rounded-lg border border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={selectedColor}
+                  onChange={(e) => {
+                    if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+                      onColorChange(e.target.value)
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                  placeholder="#000000"
+                />
+              </div>
             </div>
             
             {/* Style Selector */}
