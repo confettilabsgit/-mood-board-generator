@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useDrag } from 'react-dnd'
-import ColorPicker from './ColorPicker'
+import CanvaColorPicker from './CanvaColorPicker'
 import StyleSelector from './StyleSelector'
 import { getColorThemedCollection } from '../services/enhancedImageService'
 
@@ -30,46 +30,8 @@ const MilanoteSidebar = ({
     ]
   }
 
-  const getTypographyForStyle = (style) => {
-    const typography = {
-      modern: {
-        primary: { name: 'Inter', family: 'Inter, sans-serif', weight: '600' },
-        secondary: { name: 'Helvetica', family: 'Helvetica, Arial, sans-serif', weight: '400' },
-        accent: { name: 'Futura', family: 'Futura, sans-serif', weight: '300' }
-      },
-      vintage: {
-        primary: { name: 'Playfair Display', family: '"Playfair Display", serif', weight: '700' },
-        secondary: { name: 'Merriweather', family: '"Merriweather", serif', weight: '400' },
-        accent: { name: 'Old Standard TT', family: '"Old Standard TT", serif', weight: '400' }
-      },
-      bohemian: {
-        primary: { name: 'Amatic SC', family: '"Amatic SC", cursive', weight: '700' },
-        secondary: { name: 'Indie Flower', family: '"Indie Flower", cursive', weight: '400' },
-        accent: { name: 'Dancing Script', family: '"Dancing Script", cursive', weight: '600' }
-      },
-      industrial: {
-        primary: { name: 'Roboto Condensed', family: '"Roboto Condensed", sans-serif', weight: '700' },
-        secondary: { name: 'Oswald', family: '"Oswald", sans-serif', weight: '500' },
-        accent: { name: 'Source Code Pro', family: '"Source Code Pro", monospace', weight: '400' }
-      },
-      nature: {
-        primary: { name: 'Nunito', family: '"Nunito", sans-serif', weight: '600' },
-        secondary: { name: 'Source Sans Pro', family: '"Source Sans Pro", sans-serif', weight: '400' },
-        accent: { name: 'Satisfy', family: '"Satisfy", cursive', weight: '400' }
-      },
-      luxury: {
-        primary: { name: 'Cormorant Garamond', family: '"Cormorant Garamond", serif', weight: '600' },
-        secondary: { name: 'Crimson Text', family: '"Crimson Text", serif', weight: '400' },
-        accent: { name: 'Cinzel', family: '"Cinzel", serif', weight: '500' }
-      }
-    }
-    
-    return typography[style] || typography.modern
-  }
-
   const tabs = [
-    { id: 'tools', name: 'Tools', icon: '🎨' },
-    { id: 'elements', name: 'Elements', icon: '📦' },
+    { id: 'tools', name: 'Tools & Elements', icon: '🎨' },
     { id: 'images', name: 'Images', icon: '🖼️' }
   ]
 
@@ -109,20 +71,21 @@ const MilanoteSidebar = ({
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'tools' && (
           <div className="p-6 space-y-6">
-            <ColorPicker 
-              selectedColor={selectedColor}
-              onColorChange={onColorChange}
-            />
+            {/* Color Picker */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Pick a color</h3>
+              <CanvaColorPicker 
+                selectedColor={selectedColor}
+                onColorChange={onColorChange}
+              />
+            </div>
             
+            {/* Style Selector */}
             <StyleSelector 
               selectedStyle={selectedStyle}
               onStyleChange={onStyleChange}
             />
-          </div>
-        )}
 
-        {activeTab === 'elements' && (
-          <div className="p-6 space-y-6">
             {/* Color Swatches */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Color Swatches</h3>
@@ -130,26 +93,6 @@ const MilanoteSidebar = ({
                 {generateColorPalette(selectedColor).map((swatch, index) => (
                   <DraggableColorSwatch key={index} swatch={swatch} />
                 ))}
-              </div>
-            </div>
-
-            {/* Typography */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Typography</h3>
-              <div className="space-y-2">
-                {Object.entries(getTypographyForStyle(selectedStyle)).map(([type, font]) => (
-                  <DraggableTypography key={type} font={font} type={type} />
-                ))}
-              </div>
-            </div>
-
-            {/* Text Elements */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Text Elements</h3>
-              <div className="space-y-2">
-                <DraggableText content="TITLE TEXT" fontSize="24px" />
-                <DraggableText content="Subtitle text" fontSize="18px" />
-                <DraggableText content="Body text content goes here" fontSize="14px" />
               </div>
             </div>
           </div>
@@ -200,67 +143,6 @@ const DraggableColorSwatch = ({ swatch }) => {
   )
 }
 
-const DraggableTypography = ({ font, type }) => {
-  const [{ isDragging }, drag] = useDrag({
-    type: 'text',
-    item: {
-      type: 'text',
-      data: {
-        content: font.name,
-        fontFamily: font.family,
-        fontSize: type === 'primary' ? '24px' : type === 'secondary' ? '18px' : '16px',
-        fontWeight: font.weight
-      },
-      defaultSize: { width: 200, height: 60 }
-    },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging()
-    })
-  })
-
-  return (
-    <div
-      ref={drag}
-      className={`p-3 border border-gray-200 rounded cursor-move hover:bg-gray-50 ${
-        isDragging ? 'opacity-50' : ''
-      }`}
-      style={{ fontFamily: font.family, fontWeight: font.weight }}
-    >
-      <div className="text-sm">{font.name}</div>
-      <div className="text-xs text-gray-500 capitalize">{type}</div>
-    </div>
-  )
-}
-
-const DraggableText = ({ content, fontSize }) => {
-  const [{ isDragging }, drag] = useDrag({
-    type: 'text',
-    item: {
-      type: 'text',
-      data: {
-        content,
-        fontSize,
-        fontFamily: 'Inter, sans-serif'
-      },
-      defaultSize: { width: 200, height: 40 }
-    },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging()
-    })
-  })
-
-  return (
-    <div
-      ref={drag}
-      className={`p-2 border border-gray-200 rounded cursor-move hover:bg-gray-50 ${
-        isDragging ? 'opacity-50' : ''
-      }`}
-      style={{ fontSize }}
-    >
-      {content}
-    </div>
-  )
-}
 
 const ImageLibrary = ({ selectedStyle, selectedColor }) => {
   const [images, setImages] = useState([])

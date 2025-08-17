@@ -1,15 +1,17 @@
 # Mood Board Generator
 
-A simple and intuitive web application that creates beautiful mood boards based on a single color and style choice. Generate collage-style mood boards with curated images and download or share them instantly.
+A professional mood board creation tool inspired by Milanote, featuring drag-and-drop canvas, smart color-based image curation, and automated layout generation. Create beautiful mood boards with just a color and style choice.
 
 ## Features
 
-- **Color Picker**: HSL color wheel with saturation and lightness controls
-- **Style Selection**: Choose from 6 distinct styles (Modern, Vintage, Bohemian, Industrial, Nature, Luxury)
-- **Image Integration**: Powered by Unsplash API for high-quality, style-matched images
-- **Canvas Generation**: Real-time collage creation with color overlays and artistic layouts
-- **Download & Share**: Save as PNG or share directly from the browser
-- **Responsive Design**: Optimized for mobile and desktop
+- **🎨 Milanote-Inspired Interface**: Professional left sidebar with drag-and-drop canvas workspace
+- **🤖 Smart Image Curation**: AI-powered mix of B&W, neutral, and color-pop images
+- **🌈 Enhanced Color Search**: Lummi.ai integration for superior color-based image matching  
+- **📐 Grid-Based Layout**: Clean alignment system with snap-to-grid positioning
+- **🎯 Drag & Drop**: Intuitive image, color swatch, and typography placement
+- **📊 Color Analysis**: Automatic color palette extraction and labeling with hex values
+- **✨ Auto-Generation**: One-click mood board creation with smart layouts
+- **💾 Export & Share**: Download as PNG or share directly from browser
 
 ## Quick Start
 

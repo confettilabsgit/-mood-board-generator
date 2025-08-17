@@ -60,18 +60,18 @@ function App() {
         zIndex: 100 + index
       }))
 
-      // Add typography example
+      // Add single typography example
       const typographyElement = {
         id: `auto-text-${Date.now()}`,
         type: 'text',
         data: {
-          content: getStyleThemeText(selectedStyle),
+          content: getStyleTypographySnippet(selectedStyle),
           fontFamily: getStyleFont(selectedStyle),
-          fontSize: '18px',
+          fontSize: '16px',
           backgroundColor: 'rgba(255,255,255,0.9)'
         },
-        position: { x: 800, y: 100 },
-        size: { width: 250, height: 150 },
+        position: { x: 50, y: 500 },
+        size: { width: 200, height: 80 },
         rotation: 0,
         zIndex: 200
       }
@@ -109,16 +109,16 @@ function App() {
     ]
   }
 
-  const getStyleThemeText = (style) => {
-    const themes = {
-      modern: 'THEMES\n• Minimalism\n• Clean lines\n• Functionality\n• Simplicity',
-      vintage: 'THEMES\n• Nostalgia\n• Heritage\n• Craftsmanship\n• Timeless',
-      bohemian: 'THEMES\n• Freedom\n• Creativity\n• Wanderlust\n• Artistry',
-      industrial: 'THEMES\n• Raw materials\n• Urban edge\n• Functionality\n• Structure',
-      nature: 'THEMES\n• Organic forms\n• Earth tones\n• Sustainability\n• Growth',
-      luxury: 'THEMES\n• Elegance\n• Sophistication\n• Premium quality\n• Exclusivity'
+  const getStyleTypographySnippet = (style) => {
+    const snippets = {
+      modern: 'Modern\nClean & Minimal',
+      vintage: 'Vintage\nTimeless Elegance',
+      bohemian: 'Bohemian\nFree Spirit',
+      industrial: 'Industrial\nUrban Edge',
+      nature: 'Nature\nOrganic Beauty',
+      luxury: 'Luxury\nSophisticated'
     }
-    return themes[style] || themes.modern
+    return snippets[style] || snippets.modern
   }
 
   const getStyleFont = (style) => {
