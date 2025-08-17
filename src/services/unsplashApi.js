@@ -11,10 +11,10 @@ const styleKeywords = {
   luxury: ['luxury', 'elegant', 'sophisticated', 'premium', 'gold']
 }
 
-export const searchImages = async (style, color, count = 9) => {
+export const searchImages = async (style, color, count = 9, aiKeywords = null) => {
   try {
-    const keywords = styleKeywords[style] || styleKeywords.modern
-    const query = keywords.join(' OR ')
+    const keywords = aiKeywords || styleKeywords[style] || styleKeywords.modern
+    const query = Array.isArray(keywords) ? keywords.join(' OR ') : keywords
     
     const response = await fetch(
       `${API_BASE}/search/photos?query=${encodeURIComponent(query)}&per_page=${count}&orientation=landscape&client_id=${UNSPLASH_ACCESS_KEY}`

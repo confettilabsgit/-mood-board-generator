@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { searchImages } from '../services/unsplashApi'
+import { generateAIKeywords, generateSmartLayout } from '../services/aiService'
 
 const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
   const canvasRef = useRef(null)
@@ -10,7 +11,9 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const fetchedImages = await searchImages(style, color, 6)
+        // Generate AI-enhanced keywords
+        const aiKeywords = generateAIKeywords(color, style)
+        const fetchedImages = await searchImages(style, color, 9, aiKeywords)
         setImages(fetchedImages)
       } catch (error) {
         console.error('Failed to fetch images:', error)
@@ -49,45 +52,58 @@ const MoodBoard = ({ color, style, isGenerating, onGenerationComplete }) => {
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Define layout positions
-    const layouts = [
-      { x: 50, y: 50, width: 300, height: 200 },
-      { x: 400, y: 80, width: 250, height: 150 },
-      { x: 80, y: 300, width: 200, height: 250 },
-      { x: 350, y: 280, width: 300, height: 180 },
-      { x: 500, y: 50, width: 150, height: 200 }
-    ]
+    // Generate AI-powered smart layout
+    const smartLayouts = generateSmartLayout(images.length, canvas.width, canvas.height, style)
 
-    // Load and draw images with overlays
-    const loadPromises = images.slice(0, 4).map((imageData, index) => {
+    // Load and draw images with AI-enhanced overlays
+    const loadPromises = images.slice(0, Math.min(6, smartLayouts.length)).map((imageData, index) => {
       return new Promise((resolve) => {
         const img = new Image()
         img.crossOrigin = 'anonymous'
         img.onload = () => {
-          const layout = layouts[index]
+          const layout = smartLayouts[index]
+          
+          // Save context for rotation
+          ctx.save()
+          ctx.translate(layout.x + layout.width/2, layout.y + layout.height/2)
+          ctx.rotate((layout.rotation || 0) * Math.PI / 180)
+          
+          // Draw image with rounded corners
+          ctx.shadowColor = 'rgba(0,0,0,0.3)'
+          ctx.shadowBlur = 10
+          ctx.shadowOffsetX = 3
+          ctx.shadowOffsetY = 3
+          
+          // Draw rounded rectangle
+          const radius = 8
+          ctx.beginPath()
+          ctx.roundRect(-layout.width/2, -layout.height/2, layout.width, layout.height, radius)
+          ctx.clip()
           
           // Draw image
-          ctx.drawImage(img, layout.x, layout.y, layout.width, layout.height)
+          ctx.drawImage(img, -layout.width/2, -layout.height/2, layout.width, layout.height)
           
-          // Add color overlay
-          ctx.fillStyle = hexToRgba(color, 0.2)
-          ctx.fillRect(layout.x, layout.y, layout.width, layout.height)
+          // Add subtle color overlay
+          ctx.fillStyle = hexToRgba(color, 0.15)
+          ctx.fillRect(-layout.width/2, -layout.height/2, layout.width, layout.height)
           
-          // Add border
-          ctx.strokeStyle = hexToRgba(color, 0.8)
-          ctx.lineWidth = 3
-          ctx.strokeRect(layout.x, layout.y, layout.width, layout.height)
-          
+          ctx.restore()
           resolve()
         }
         img.onerror = () => {
-          // Fallback: draw colored rectangle
-          const layout = layouts[index]
-          ctx.fillStyle = hexToRgba(color, 0.3)
-          ctx.fillRect(layout.x, layout.y, layout.width, layout.height)
-          ctx.strokeStyle = hexToRgba(color, 0.8)
-          ctx.lineWidth = 3
-          ctx.strokeRect(layout.x, layout.y, layout.width, layout.height)
+          // Fallback: draw styled rectangle
+          const layout = smartLayouts[index] || { x: 50, y: 50, width: 200, height: 150, rotation: 0 }
+          
+          ctx.save()
+          ctx.translate(layout.x + layout.width/2, layout.y + layout.height/2)
+          ctx.rotate((layout.rotation || 0) * Math.PI / 180)
+          
+          ctx.fillStyle = hexToRgba(color, 0.4)
+          ctx.shadowColor = 'rgba(0,0,0,0.2)'
+          ctx.shadowBlur = 8
+          ctx.fillRect(-layout.width/2, -layout.height/2, layout.width, layout.height)
+          
+          ctx.restore()
           resolve()
         }
         img.src = imageData.url
