@@ -16,8 +16,8 @@ function App() {
     setIsGenerating(true)
     
     try {
-      // Get curated images using enhanced service with Lummi integration
-      const allImages = await getCuratedMoodBoardImages(selectedStyle, selectedColor, 'milanote')
+      // Get curated diverse images based only on color
+      const allImages = await getCuratedMoodBoardImages('diverse', selectedColor, 'milanote')
       
       // Create varied layout with different sizes
       const imageElements = allImages.map((image, index) => {
@@ -69,8 +69,8 @@ function App() {
         id: `auto-text-${Date.now()}`,
         type: 'text',
         data: {
-          content: getStyleTypographySnippet(selectedStyle),
-          fontFamily: getStyleFont(selectedStyle),
+          content: 'Mood Board\nColor Inspiration',
+          fontFamily: 'Inter, sans-serif',
           fontSize: '16px',
           backgroundColor: 'rgba(255,255,255,0.9)'
         },
@@ -175,12 +175,6 @@ function App() {
     }
   }
 
-  // Auto-refresh mood board when style changes
-  useEffect(() => {
-    if (canvasElements.length > 0) {
-      handleAutoGenerate()
-    }
-  }, [selectedStyle])
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -188,15 +182,12 @@ function App() {
         <MilanoteSidebar
           selectedColor={selectedColor}
           onColorChange={setSelectedColor}
-          selectedStyle={selectedStyle}
-          onStyleChange={setSelectedStyle}
           onAutoGenerate={handleAutoGenerate}
           isGenerating={isGenerating}
         />
         
         <MilanoteCanvas
           selectedColor={selectedColor}
-          selectedStyle={selectedStyle}
           elements={canvasElements}
           onElementsChange={setCanvasElements}
         />

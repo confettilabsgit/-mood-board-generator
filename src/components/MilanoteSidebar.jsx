@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useDrag } from 'react-dnd'
 // import CanvaColorPicker from './CanvaColorPicker'
-import StyleSelector from './StyleSelector'
+// import StyleSelector from './StyleSelector'
 import { getColorThemedCollection } from '../services/enhancedImageService'
 
 const MilanoteSidebar = ({ 
@@ -109,11 +109,6 @@ const MilanoteSidebar = ({
               </div>
             </div>
             
-            {/* Style Selector */}
-            <StyleSelector 
-              selectedStyle={selectedStyle}
-              onStyleChange={onStyleChange}
-            />
 
             {/* Color Swatches */}
             <div>
@@ -131,7 +126,7 @@ const MilanoteSidebar = ({
           <div className="p-6">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Stock Images</h3>
             <p className="text-sm text-gray-500 mb-4">Drag images to canvas</p>
-            <ImageLibrary selectedStyle={selectedStyle} selectedColor={selectedColor} />
+            <ImageLibrary selectedColor={selectedColor} />
           </div>
         )}
       </div>
@@ -173,7 +168,7 @@ const DraggableColorSwatch = ({ swatch }) => {
 }
 
 
-const ImageLibrary = ({ selectedStyle, selectedColor }) => {
+const ImageLibrary = ({ selectedColor }) => {
   const [images, setImages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -181,22 +176,25 @@ const ImageLibrary = ({ selectedStyle, selectedColor }) => {
     const fetchImages = async () => {
       setIsLoading(true)
       try {
-        const themeImages = await getColorThemedCollection(selectedColor, selectedStyle, 6)
+        const themeImages = await getColorThemedCollection(selectedColor, 'diverse', 6)
         setImages(themeImages)
       } catch (error) {
         console.error('Error fetching themed images:', error)
-        // Fallback to sample images
+        // Fallback to diverse sample images
         setImages([
-          { url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400', alt: 'Modern architecture' },
-          { url: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=400', alt: 'Clean interior' },
-          { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=400', alt: 'Minimalist design' }
+          { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400', alt: 'Portrait' },
+          { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', alt: 'Landscape' },
+          { url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400', alt: 'Vintage sign' },
+          { url: 'https://images.unsplash.com/photo-1495521821757-a2efacb9c924?w=400', alt: 'Food' },
+          { url: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=400', alt: 'Art' },
+          { url: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400', alt: 'Objects' }
         ])
       }
       setIsLoading(false)
     }
 
     fetchImages()
-  }, [selectedStyle, selectedColor])
+  }, [selectedColor])
 
   if (isLoading) {
     return (

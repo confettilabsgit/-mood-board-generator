@@ -53,20 +53,16 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
   try {
     const totalImages = Math.max(7, layout === 'milanote' ? 9 : 12) // Minimum 7 images
 
-    // Strategy: Much more diverse content mix
+    // Strategy: Guaranteed diverse content mix
     const searchStrategies = [
-      // People & Fashion - More images
-      { terms: ['portrait', 'people', 'fashion', 'model'], count: 3 },
-      // Nature & Objects  
-      { terms: ['nature', 'flower', 'landscape', 'food'], count: 2 },
-      // Art & Design
-      { terms: ['art', 'illustration', 'graphic design', 'painting'], count: 2 },
-      // Architecture (but specific)
-      { terms: ['building', 'architecture', 'street', 'urban'], count: 1 },
-      // Typography & Text
-      { terms: ['typography', 'sign', 'text', 'lettering'], count: 1 },
-      // Lifestyle & Objects
-      { terms: ['lifestyle', 'product', 'texture', 'abstract'], count: 1 }
+      // Always include these content types
+      { terms: ['portrait', 'face', 'person'], count: 2 }, // Portraits
+      { terms: ['landscape', 'nature', 'mountain', 'ocean'], count: 2 }, // Landscapes  
+      { terms: ['vintage sign', 'neon sign', 'storefront', 'typography'], count: 1 }, // Signs
+      { terms: ['food', 'coffee', 'restaurant'], count: 1 }, // Food
+      { terms: ['art', 'painting', 'illustration'], count: 1 }, // Art
+      { terms: ['street', 'urban', 'city'], count: 1 }, // Urban
+      { terms: ['texture', 'fabric', 'material'], count: 1 } // Textures
     ]
 
     const [diverseImages] = await Promise.all([
