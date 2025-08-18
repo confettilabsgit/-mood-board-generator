@@ -42,9 +42,8 @@ export const searchEnhancedImages = async (searchTerm, color, totalCount = 9, mo
 
   } catch (error) {
     console.error('Error in enhanced image search:', error)
-    // Fallback to Unsplash only
-    const aiKeywords = generateAIKeywords(color, style)
-    return await searchUnsplash(style, color, totalCount, aiKeywords)
+    // Fallback to Unsplash only with diverse search terms
+    return await searchUnsplash(searchTerm, color, totalCount, [])
   }
 }
 
@@ -69,6 +68,7 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
       // Get truly diverse content WITHOUT style influence
       Promise.all(searchStrategies.map(async (strategy) => {
         const searchTerm = strategy.terms[Math.floor(Math.random() * strategy.terms.length)]
+        console.log(`Searching for: ${searchTerm} with count: ${strategy.count}`)
         return await searchEnhancedImages(searchTerm, color, strategy.count, 'unsplash')
       })).then(results => results.flat().slice(0, totalImages))
     ])
@@ -111,8 +111,15 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
 
   } catch (error) {
     console.error('Error in curated search:', error)
-    // Fallback to basic enhanced search
-    return await searchEnhancedImages(style, color, totalImages, 'mixed')
+    // Fallback to diverse search terms without style
+    const fallbackTerms = ['portrait', 'landscape', 'art', 'food', 'urban', 'nature', 'creative']
+    const fallbackImages = []
+    for (const term of fallbackTerms) {
+      if (fallbackImages.length >= totalImages) break
+      const images = await searchEnhancedImages(term, color, 1, 'unsplash')
+      fallbackImages.push(...images)
+    }
+    return fallbackImages.slice(0, totalImages)
   }
 }
 
