@@ -20,12 +20,25 @@ const MilanoteSidebar = ({
     const g = parseInt(selectedColor.slice(3, 5), 16)
     const b = parseInt(selectedColor.slice(5, 7), 16)
     
-    const colorNames = ['Primary', 'Light', 'Dark', 'Accent', 'Neutral']
+    // Helper function to convert RGB to hex
+    const rgbToHex = (r, g, b) => {
+      return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`
+    }
+    
+    const lightR = Math.min(255, r + 40)
+    const lightG = Math.min(255, g + 40) 
+    const lightB = Math.min(255, b + 40)
+    const lightHex = rgbToHex(lightR, lightG, lightB)
+    
+    const darkR = Math.max(0, r - 40)
+    const darkG = Math.max(0, g - 40)
+    const darkB = Math.max(0, b - 40)
+    const darkHex = rgbToHex(darkR, darkG, darkB)
     
     return [
-      { hex: selectedColor, name: colorNames[0], color: selectedColor },
-      { hex: `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`, name: colorNames[1], color: `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})` },
-      { hex: `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`, name: colorNames[2], color: `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})` },
+      { hex: selectedColor, name: 'Primary', color: selectedColor },
+      { hex: lightHex, name: 'Light', color: lightHex },
+      { hex: darkHex, name: 'Dark', color: darkHex },
       { hex: '#ffffff', name: 'White', color: '#ffffff' },
       { hex: '#000000', name: 'Black', color: '#000000' }
     ]
