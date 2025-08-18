@@ -43,47 +43,30 @@ export const searchImages = async (style, color, count = 9, aiKeywords = null) =
 }
 
 const getFallbackImages = (style) => {
-  const fallbackImages = {
-    modern: [
-      { url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800', alt: 'Modern architecture' },
-      { url: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=800', alt: 'Clean interior' },
-      { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800', alt: 'Minimalist design' },
-      { url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800', alt: 'Contemporary space' }
-    ],
-    vintage: [
-      { url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800', alt: 'Vintage camera' },
-      { url: 'https://images.unsplash.com/photo-1544967919-6baa227ccfb7?w=800', alt: 'Retro items' },
-      { url: 'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=800', alt: 'Classic objects' },
-      { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', alt: 'Antique items' }
-    ],
-    bohemian: [
-      { url: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800', alt: 'Bohemian textiles' },
-      { url: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=800', alt: 'Artistic elements' },
-      { url: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=800', alt: 'Creative space' },
-      { url: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800', alt: 'Eclectic decor' }
-    ],
-    industrial: [
-      { url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800', alt: 'Industrial space' },
-      { url: 'https://images.unsplash.com/photo-1590479773265-7464e5d48118?w=800', alt: 'Urban architecture' },
-      { url: 'https://images.unsplash.com/photo-1572721546624-05bf65ad7679?w=800', alt: 'Concrete structures' },
-      { url: 'https://images.unsplash.com/photo-1555838693-7b3e8e6c0e95?w=800', alt: 'Metal elements' }
-    ],
-    nature: [
-      { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800', alt: 'Forest landscape' },
-      { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', alt: 'Natural elements' },
-      { url: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800', alt: 'Botanical scene' },
-      { url: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=800', alt: 'Organic textures' }
-    ],
-    luxury: [
-      { url: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=800', alt: 'Luxury interior' },
-      { url: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=800', alt: 'Elegant design' },
-      { url: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800', alt: 'Sophisticated space' },
-      { url: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800', alt: 'Premium materials' }
-    ]
-  }
-
-  return (fallbackImages[style] || fallbackImages.modern).map((img, index) => ({
-    id: `fallback-${style}-${index}`,
+  // Diverse fallback images (used when API fails)
+  const diverseFallbackImages = [
+    // Portraits
+    { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800', alt: 'Portrait' },
+    { url: 'https://images.unsplash.com/photo-1494790108755-2616c75b9b0f?w=800', alt: 'Fashion portrait' },
+    // Landscapes  
+    { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', alt: 'Mountain landscape' },
+    { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800', alt: 'Forest landscape' },
+    // Vintage signs
+    { url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800', alt: 'Vintage sign' },
+    { url: 'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=800', alt: 'Neon typography' },
+    // Food
+    { url: 'https://images.unsplash.com/photo-1495521821757-a2efacb9c924?w=800', alt: 'Coffee' },
+    { url: 'https://images.unsplash.com/photo-1546554137-f86b9593a222?w=800', alt: 'Food styling' },
+    // Art
+    { url: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=800', alt: 'Abstract art' },
+    { url: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=800', alt: 'Street art' },
+    // Urban/Architecture
+    { url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800', alt: 'Urban street' },
+    { url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800', alt: 'Modern architecture' }
+  ]
+  
+  return diverseFallbackImages.map((img, index) => ({
+    id: `fallback-diverse-${index}`,
     url: img.url,
     thumb: img.url + '&w=400',
     alt: img.alt,
