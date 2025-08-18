@@ -52,23 +52,32 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
   try {
     const totalImages = Math.max(7, layout === 'milanote' ? 9 : 12) // Minimum 7 images
 
-    // Strategy: Guaranteed diverse content mix
+    // Strategy: Color-influenced diverse content mix
+    const colorName = getColorName(color)
+    const colorKeywords = getColorKeywords(color, colorName)
+    
     const searchStrategies = [
-      // Always include these content types
-      { terms: ['portrait', 'face', 'person'], count: 2 }, // Portraits
-      { terms: ['landscape', 'nature', 'mountain', 'ocean'], count: 2 }, // Landscapes  
-      { terms: ['vintage sign', 'neon sign', 'storefront', 'typography'], count: 1 }, // Signs
-      { terms: ['food', 'coffee', 'restaurant'], count: 1 }, // Food
-      { terms: ['art', 'painting', 'illustration'], count: 1 }, // Art
-      { terms: ['street', 'urban', 'city'], count: 1 }, // Urban
-      { terms: ['texture', 'fabric', 'material'], count: 1 } // Textures
+      // Color-influenced portraits
+      { terms: [`${colorName} portrait`, `${colorName} fashion`, `person ${colorKeywords[0]}`], count: 2 },
+      // Color-influenced landscapes  
+      { terms: [`${colorName} landscape`, `${colorName} nature`, `${colorKeywords[1]} scenery`], count: 2 },
+      // Color-influenced objects
+      { terms: [`${colorName} object`, `${colorKeywords[0]} product`, `${colorName} design`], count: 1 },
+      // Color-influenced food (if applicable)
+      { terms: [`${colorName} food`, `${colorKeywords[2]} coffee`, `colorful food`], count: 1 },
+      // Color-influenced art
+      { terms: [`${colorName} art`, `${colorKeywords[0]} painting`, `colorful illustration`], count: 1 },
+      // Color-influenced urban
+      { terms: [`${colorName} building`, `colorful street`, `${colorKeywords[1]} architecture`], count: 1 },
+      // Color-influenced abstract
+      { terms: [`${colorName} abstract`, `${colorKeywords[2]} texture`, `colorful pattern`], count: 1 }
     ]
 
     const [diverseImages] = await Promise.all([
       // Get truly diverse content WITHOUT style influence
       Promise.all(searchStrategies.map(async (strategy) => {
         const searchTerm = strategy.terms[Math.floor(Math.random() * strategy.terms.length)]
-        console.log(`Searching for: ${searchTerm} with count: ${strategy.count}`)
+        console.log(`Color-based search: ${searchTerm} (for ${colorName} theme) with count: ${strategy.count}`)
         return await searchEnhancedImages(searchTerm, color, strategy.count, 'unsplash')
       })).then(results => results.flat().slice(0, totalImages))
     ])
@@ -76,14 +85,14 @@ export const getCuratedMoodBoardImages = async (style, color, layout = 'milanote
     // Use the diverse images directly
     const allImages = diverseImages
 
-    // If we don't have enough images, supplement with additional searches (NO STYLE)
+    // If we don't have enough images, supplement with color-based searches
     if (allImages.length < totalImages) {
       const additionalSearches = [
-        'creative',
-        'artistic', 
-        'beautiful',
-        'colorful',
-        'aesthetic'
+        `${colorName} creative`,
+        `${colorName} artistic`, 
+        `${colorKeywords[0]} beautiful`,
+        `${colorName} aesthetic`,
+        `colorful ${colorKeywords[1]}`
       ]
       
       for (const searchTerm of additionalSearches) {
@@ -291,4 +300,60 @@ const removeDuplicateImages = (images) => {
     seen.add(url)
     return true
   })
+}
+
+// Convert hex color to color name
+const getColorName = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  
+  // Convert to HSL for better color classification
+  const max = Math.max(r, g, b) / 255
+  const min = Math.min(r, g, b) / 255
+  const diff = max - min
+  
+  let h = 0
+  if (diff !== 0) {
+    if (max === r / 255) h = ((g - b) / 255 / diff) % 6
+    else if (max === g / 255) h = (b - r) / 255 / diff + 2
+    else h = (r - g) / 255 / diff + 4
+    h *= 60
+    if (h < 0) h += 360
+  }
+  
+  const l = (max + min) / 2
+  const s = diff === 0 ? 0 : diff / (1 - Math.abs(2 * l - 1))
+  
+  // Determine color name based on HSL
+  if (s < 0.1) return l > 0.7 ? 'white' : l < 0.3 ? 'black' : 'gray'
+  
+  if (h >= 0 && h < 30) return 'red'
+  if (h >= 30 && h < 60) return 'orange'
+  if (h >= 60 && h < 120) return 'yellow'
+  if (h >= 120 && h < 180) return 'green'
+  if (h >= 180 && h < 240) return 'blue'
+  if (h >= 240 && h < 300) return 'purple'
+  if (h >= 300 && h < 330) return 'pink'
+  if (h >= 330) return 'red'
+  
+  return 'colorful'
+}
+
+// Get color-related keywords for search enhancement
+const getColorKeywords = (hex, colorName) => {
+  const colorKeywordMap = {
+    red: ['vibrant', 'warm', 'bold'],
+    orange: ['bright', 'energetic', 'warm'],
+    yellow: ['sunny', 'bright', 'cheerful'],
+    green: ['natural', 'fresh', 'organic'],
+    blue: ['cool', 'calm', 'serene'],
+    purple: ['rich', 'luxurious', 'deep'],
+    pink: ['soft', 'romantic', 'delicate'],
+    black: ['dramatic', 'elegant', 'bold'],
+    white: ['clean', 'minimal', 'pure'],
+    gray: ['neutral', 'sophisticated', 'modern']
+  }
+  
+  return colorKeywordMap[colorName] || ['colorful', 'vibrant', 'bright']
 }

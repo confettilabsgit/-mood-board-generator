@@ -38,31 +38,31 @@ export const searchImages = async (style, color, count = 9, aiKeywords = null) =
     }))
   } catch (error) {
     console.error('Error fetching images from Unsplash:', error)
-    return getFallbackImages(style)
+    return getFallbackImages(query)
   }
 }
 
-const getFallbackImages = (style) => {
-  // Diverse fallback images (used when API fails)
+const getFallbackImages = (searchTerm) => {
+  // Colorful diverse fallback images (used when API fails)
   const diverseFallbackImages = [
-    // Portraits
+    // Colorful portraits
     { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800', alt: 'Portrait' },
-    { url: 'https://images.unsplash.com/photo-1494790108755-2616c75b9b0f?w=800', alt: 'Fashion portrait' },
-    // Landscapes  
-    { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', alt: 'Mountain landscape' },
-    { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800', alt: 'Forest landscape' },
-    // Vintage signs
-    { url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800', alt: 'Vintage sign' },
-    { url: 'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=800', alt: 'Neon typography' },
-    // Food
-    { url: 'https://images.unsplash.com/photo-1495521821757-a2efacb9c924?w=800', alt: 'Coffee' },
-    { url: 'https://images.unsplash.com/photo-1546554137-f86b9593a222?w=800', alt: 'Food styling' },
-    // Art
-    { url: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=800', alt: 'Abstract art' },
-    { url: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=800', alt: 'Street art' },
-    // Urban/Architecture
-    { url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800', alt: 'Urban street' },
-    { url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800', alt: 'Modern architecture' }
+    { url: 'https://images.unsplash.com/photo-1494790108755-2616c75b9b0f?w=800', alt: 'Colorful fashion' },
+    // Vibrant landscapes  
+    { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', alt: 'Sunset landscape' },
+    { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800', alt: 'Autumn forest' },
+    // Colorful objects/products
+    { url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800', alt: 'Vintage colorful object' },
+    { url: 'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=800', alt: 'Neon colors' },
+    // Colorful food
+    { url: 'https://images.unsplash.com/photo-1495521821757-a2efacb9c924?w=800', alt: 'Colorful food' },
+    { url: 'https://images.unsplash.com/photo-1546554137-f86b9593a222?w=800', alt: 'Vibrant ingredients' },
+    // Colorful art
+    { url: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=800', alt: 'Colorful abstract art' },
+    { url: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=800', alt: 'Vibrant street art' },
+    // Urban colors
+    { url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800', alt: 'Colorful urban scene' },
+    { url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800', alt: 'Architectural colors' }
   ]
   
   return diverseFallbackImages.map((img, index) => ({
